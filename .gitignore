@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# MATLAB
+*.asv
+*.m~
+slprj/
+
+# IDE and operating-system files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+~$*
+
+# Local datasets, weights, and generated artifacts
+data/
+datasets/
+weights/
+runs/
+outputs/
+temp_*
+result_*
+*.mp4
+*.avi
+*.mkv
+*.pt
+
+# Secrets and local configuration
+.env
+config.json
+tests/
+*.key
+*.secret

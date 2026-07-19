@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this research code, please cite the associated paper."
+title: "Recoverable ROI Encryption for Vehicle Privacy in the Internet of Vehicles"
+type: software
+authors:
+  - family-names: Lyu
+    given-names: Jie
+  - family-names: Zhang
+    given-names: Duzhong
+  - family-names: Li
+    given-names: Taiyong
+version: 0.1.0
+date-released: 2026-07-19
+repository-code: "https://github.com/Lvjieee/ROI-Vehicle-Encryption"

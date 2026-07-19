@@ -1,0 +1,16 @@
+{
+  "mode": "encrypt",
+  "input": "C:/path/to/input.mp4-or-frame-directory",
+  "model": "C:/path/to/yolo26_best.pt",
+  "encrypted_output": "runs/encrypted",
+  "recovered_output": "runs/recovered",
+  "key_hex": "REPLACE_WITH_64_HEX_CHARACTERS",
+  "pool_size": 1000000,
+  "rounds": 3,
+  "confidence": 0.25,
+  "imgsz": 960,
+  "classes": [0, 1, 2],
+  "max_frames": 30,
+  "preview": true,
+  "enable_recovery": false
+}
