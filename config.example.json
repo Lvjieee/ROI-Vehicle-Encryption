@@ -1,16 +1,59 @@
-{
-  "mode": "encrypt",
-  "input": "C:/path/to/input.mp4-or-frame-directory",
-  "model": "C:/path/to/yolo26_best.pt",
-  "encrypted_output": "runs/encrypted",
-  "recovered_output": "runs/recovered",
-  "key_hex": "REPLACE_WITH_64_HEX_CHARACTERS",
-  "pool_size": 1000000,
-  "rounds": 3,
-  "confidence": 0.25,
-  "imgsz": 960,
-  "classes": [0, 1, 2],
-  "max_frames": 30,
-  "preview": true,
-  "enable_recovery": false
-}
+function run_tests()
+%RUN_TESTS Execute deterministic MATLAB smoke and round-trip tests.
+
+test_dir = fileparts(mfilename('fullpath'));
+repo_dir = fileparts(test_dir);
+addpath(fullfile(repo_dir, 'matlab'));
+
+fprintf('Running SHA-mode round-trip tests...\n');
+rng(42);
+known_digest = lower(reshape(dec2hex(hash(uint8('abc'), 'SHA-256'), 2).', 1, []));
+assert(strcmp(known_digest, ...
+    'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'), ...
+    'SHA-256 known-answer test failed.');
+
+sizes = [13, 17, 3; 20, 20, 3; 31, 32, 3];
+for index = 1:size(sizes, 1)
+    shape = sizes(index, :);
+    plain = uint8(randi([0, 255], shape));
+    [~, cipher, digest] = encrypt(plain, 3);
+    recovered = decrypt(cipher, digest, 3, false);
+    assert(isequal(plain, recovered), ...
+        'SHA-mode round trip failed for shape %s.', mat2str(shape));
+end
+
+fprintf('Running shared-pool round-trip tests...\n');
+base_key = uint8(0:31);
+init_global_pool(base_key, 20000);
+for index = 1:size(sizes, 1)
+    shape = sizes(index, :);
+    plain = uint8(randi([0, 255], shape));
+    required = pool_required_length(shape(1), shape(2), shape(3));
+    start_index = 1000 + index * 1000;
+    assert(start_index + required - 1 <= 20000);
+    [~, cipher, used_index] = encrypt(plain, 3, start_index);
+    assert(used_index == start_index);
+    recovered = decrypt(cipher, used_index, 3, false);
+    assert(isequal(plain, recovered), ...
+        'Pool-mode round trip failed for shape %s.', mat2str(shape));
+end
+
+fprintf('Checking permutation inversion...\n');
+plain = uint8(randi([0, 255], [17, 19, 3]));
+K = rand(ceil(numel(plain) / 6), 6);
+assert(isequal(double(plain), de_permutation(permutation(plain, K), K)));
+
+fprintf('Measuring fixed-key diffusion scope (diagnostic only)...\n');
+first = uint8(zeros(32, 32, 3));
+second = first;
+second(1) = 1;
+K = rand(ceil((32 * 32) / 2), 6);
+cipher_first = myDiffusion(first, K, 3);
+cipher_second = myDiffusion(second, K, 3);
+npcr = 100 * nnz(cipher_first ~= cipher_second) / numel(cipher_first);
+fprintf('Fixed-key one-byte NPCR: %.6f%%\n', npcr);
+fprintf(['Note: this diagnostic isolates the diffusion transform from ', ...
+    'plaintext-bound key selection.\n']);
+
+fprintf('All required tests passed.\n');
+end
