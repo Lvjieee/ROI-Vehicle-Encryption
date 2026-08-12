@@ -4,6 +4,10 @@ __pycache__/
 .venv/
 venv/
 
+# Local tests (not included in the public repository)
+/tests/
+/python/run_tests.py
+
 # MATLAB
 *.asv
 *.m~
@@ -32,6 +36,5 @@ result_*
 # Secrets and local configuration
 .env
 config.json
-tests/
 *.key
 *.secret
