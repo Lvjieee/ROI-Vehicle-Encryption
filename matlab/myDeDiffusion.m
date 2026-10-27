@@ -1,46 +1,23 @@
-function output = myDeDiffusion(cipher_image, K, rounds)
-%MYDEDIFFUSION Exactly invert MYDIFFUSION.
-
-validateattributes(rounds, {'numeric'}, ...
-    {'scalar', 'integer', 'nonnegative', 'finite'});
-
-[h, w, d] = size(cipher_image);
-sequence = double(cipher_image(:));
-total_length = numel(sequence);
-left_length = floor(total_length / 2);
-right_length = total_length - left_length;
-
-left = sequence(1:left_length);
-right = sequence(left_length+1:end);
-[initial_left, initial_right] = derive_diffusion_keys(K, total_length);
-
-left_history = cell(rounds, 1);
-right_history = cell(rounds, 1);
-key_left = initial_left;
-key_right = initial_right;
-for iteration = 1:rounds
-    left_history{iteration} = key_left;
-    right_history{iteration} = key_right;
-    key_left = circshift(key_left, 13);
-    key_right = circshift(key_right, 17);
+function out = myDeDiffusion(img, K, rounds)
+% Inverse DFTF.
+[h, w, d] = size(img);
+x = double(img(:));
+n = numel(x);
+L = x(1:floor(n/2));
+R = x(floor(n/2)+1:end);
+[kl, kr] = derive_diffusion_keys(K, n);
+KL = cell(rounds, 1); KR = cell(rounds, 1);
+for t = 1:rounds
+    KL{t} = kl; KR{t} = kr;
+    kl = circshift(kl, 13);
+    kr = circshift(kr, 17);
 end
-
-for iteration = rounds:-1:1
-    key_left = left_history{iteration};
-    key_right = right_history{iteration};
-
-    injection_left = mod(left + key_left, 256);
-    if right_length > left_length
-        extended = zeros(right_length, 1);
-        extended(1:left_length) = injection_left;
-        extended(end) = injection_left(end);
-        injection_left = extended;
-    end
-    right = mod(right - injection_left, 256);
-
-    injection_right = mod(right + key_right, 256);
-    left = mod(left - injection_right(1:left_length), 256);
+for t = rounds:-1:1
+    inj = mod(L + KL{t}, 256);
+    if numel(R) > numel(L), inj = [inj; inj(end)]; end
+    R = mod(R - inj, 256);
+    inj = mod(R + KR{t}, 256);
+    L = mod(L - inj(1:numel(L)), 256);
 end
-
-output = uint8(reshape([left; right], h, w, d));
+out = uint8(reshape([L; R], h, w, d));
 end

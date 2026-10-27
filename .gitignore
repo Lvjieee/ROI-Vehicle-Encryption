@@ -1,40 +1,15 @@
-# Python
 __pycache__/
 *.py[cod]
 .venv/
 venv/
-
-# Local tests (not included in the public repository)
-/tests/
-/python/run_tests.py
-
-# MATLAB
-*.asv
-*.m~
-slprj/
-
-# IDE and operating-system files
 .idea/
 .vscode/
 .DS_Store
-Thumbs.db
-~$*
-
-# Local datasets, weights, and generated artifacts
-data/
-datasets/
-weights/
+*.asv
+demo_output/
 runs/
-outputs/
-temp_*
-result_*
+data/
+weights/
+*.pt
 *.mp4
 *.avi
-*.mkv
-*.pt
-
-# Secrets and local configuration
-.env
-config.json
-*.key
-*.secret
